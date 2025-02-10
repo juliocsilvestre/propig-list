@@ -1,0 +1,9 @@
+.todo_form {
+    padding: 20px 30px;
+}
+
+.todo_form button {
+    display: block;
+    max-width: 200px;
+    margin: 30px auto 0;
+}
