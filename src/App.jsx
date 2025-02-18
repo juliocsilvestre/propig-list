@@ -9,6 +9,7 @@ import logo from "./assets/logo-propig.svg";
 import Modal from "react-modal";
 import Footer from "./components/Footer/Footer";
 import { toast } from "react-toastify";
+import { getPosts } from "./service/api.service";
 
 const modalStyles = {
     content: {
@@ -74,6 +75,13 @@ function App() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [search, setSearch] = useState("");
     const [filter, setFilter] = useState("All");
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [currentTodo, setCurrentTodo] = useState({
+        id: null,
+        title: "",
+        description: "",
+        isCompleted: false,
+    });
 
     Modal.setAppElement("#root");
 
@@ -107,11 +115,43 @@ function App() {
 
     const openCreateTaskModal = () => {
         setIsModalOpen(true);
+        setIsEditMode(false);
+        setCurrentTodo({ id: null, title: "", description: "", isCompleted: false });
+    };
+
+    const openEditTaskModal = (todo) => {
+        setIsEditMode(true);
+        setCurrentTodo(todo);
+        setIsModalOpen(true);
+    };
+
+    const updateTodo = (id, title, description) => {
+        setTodos((prevTodos) =>
+            prevTodos.map((todo) => (todo.id === id ? { ...todo, title, description } : todo))
+        );
+        toast.success("Tarefa editada com sucesso!", {
+            position: "top-right",
+            hideProgressBar: false,
+            theme: "light",
+            closeButton: false,
+            closeOnClick: true,
+        });
+        setIsModalOpen(false);
     };
 
     useEffect(() => {
         localStorage.setItem("todos", JSON.stringify(todos));
     }, [todos]);
+
+    useEffect(() => {
+        getPosts()
+            .then((data) => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error("Erro ao buscar posts no App:", error);
+            });
+    }, []);
 
     return (
         <div className="app">
@@ -144,6 +184,7 @@ function App() {
                                 todo={todo}
                                 removeTodo={removeTodo}
                                 completeTodo={completeTodo}
+                                editTodo={openEditTaskModal}
                             />
                         ))
                         .sort((a, b) => {
@@ -163,7 +204,13 @@ function App() {
                 shouldCloseOnOverlayClick
                 shouldCloseOnEsc
             >
-                <TodoForm addTodo={addTodo} isModalOpen={isModalOpen} />
+                <TodoForm
+                    addTodo={addTodo}
+                    updateTodo={updateTodo}
+                    isModalOpen={isModalOpen}
+                    isEditMode={isEditMode}
+                    currentTodo={currentTodo}
+                />
             </Modal>
             <Footer />
         </div>
